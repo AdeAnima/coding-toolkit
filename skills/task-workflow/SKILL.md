@@ -134,7 +134,10 @@ stays as the audit trail).
 
 1. **Tell the user what you found** (which tracker file) and offer to migrate it
    into a `pm/` vault. **Ask how much control they want** — adapt to the answer:
-   - *Auto:* run the whole migration, then show a summary.
+   - *Auto:* run the migration (steps 2–4) without asking, then show a summary.
+     Auto covers the classify/apply/check sequence only — it does **not** absorb
+     step 5. The Obsidian-open offer in step 5 is an interactive checkpoint that
+     fires in every control level, Auto included. Never silently skip it.
    - *Propose-confirm (default):* show the proposed `tw new …` command list, run
      it only after the user approves.
    - *Interactive:* walk item by item, confirming each before adding it.
@@ -170,9 +173,13 @@ stays as the audit trail).
    command from the repo root, **epics/milestones first** so task `--epic`
    references resolve. Then `tw check` to confirm the vault parses with no
    dangling links.
-5. **Offer to open the vault in Obsidian.** Once `tw check` is clean, ask the
-   user whether to open the new `pm/` vault now. **On no**, leave it — the files
-   are already on disk. **On yes**, register and open it correctly:
+5. **Offer to open the vault in Obsidian** (always — even in Auto). Once
+   `tw check` is clean, before you write the migration summary or answer the
+   original question, **stop and ask** the user whether to open the new `pm/`
+   vault in Obsidian now. A migration is not complete until this offer is made;
+   do not roll straight from `tw check` into the backlog answer. **On no**,
+   leave it — the files are already on disk. **On yes**, register and open it
+   correctly:
 
    > **`open -a Obsidian "<path>"` does NOT register or switch to a new vault** —
    > it only re-focuses Obsidian on whatever vault was last active. A vault
