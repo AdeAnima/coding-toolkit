@@ -171,11 +171,54 @@ stays as the audit trail).
    references resolve. Then `tw check` to confirm the vault parses with no
    dangling links.
 5. **Offer to open the vault in Obsidian.** Once `tw check` is clean, ask the
-   user whether to open the new `pm/` vault in Obsidian now (it's a plain-files
-   vault; first open also needs the Bases core plugin enabled by hand). **On
-   yes**, open it: `open -a Obsidian "<repo>/pm"` on macOS (or tell the user the
-   path to open as a vault on other platforms). **On no**, leave it — the files
-   are already on disk.
+   user whether to open the new `pm/` vault now. **On no**, leave it — the files
+   are already on disk. **On yes**, register and open it correctly:
+
+   > **`open -a Obsidian "<path>"` does NOT register or switch to a new vault** —
+   > it only re-focuses Obsidian on whatever vault was last active. A vault
+   > Obsidian has never seen must be added to its registry first. Do not loop on
+   > `open -a`; it will keep landing on the wrong vault.
+
+   - **macOS** — edit the registry while Obsidian is quit, then relaunch:
+     1. Quit Obsidian (`osascript -e 'quit app "Obsidian"'`, then `pkill -x Obsidian` if needed) so it doesn't overwrite the file on exit.
+     2. In `~/Library/Application Support/obsidian/obsidian.json`, add an entry under `vaults`: a fresh random hex id → `{ "path": "<abs vault path>", "ts": <epoch-ms>, "open": true }`, and set `open: false` on every other vault so the new one is the one that opens.
+     3. Relaunch: `open -a Obsidian`.
+   - **Linux/Windows or if unsure** — don't poke the registry; tell the user to
+     add it by hand once: Obsidian → vault switcher (bottom-left) → *Open folder
+     as vault* → select the vault path. After that one-time step it stays
+     registered.
+
+   Bases ships **enabled by default** in current Obsidian, so `board.base` /
+   `backlog.base` render on first open with no action. If an older Obsidian shows
+   them as plain files, the user enables it once: Settings → Core plugins → Bases.
+   First open may also prompt *Trust author* — that is expected; confirm it.
+
+6. **Offer to archive the migrated source tracker (optional).** The source file
+   was never modified during migration and stays as the audit trail — but it is
+   now superseded by the vault, and a future session may read the stale tracker
+   instead of the vault. After the user has the vault open, offer to tidy it.
+   **Only on yes**, and never deleting:
+   - `git mv <tracker> docs/legacy/<tracker>` (a move preserves git history; do
+     **not** `rm`). Move only the trackers that were actually migrated — leave
+     design/spec/brand docs (`DESIGN.md`, `PRODUCT.md`, …) where they are.
+   - Drop a `docs/legacy/README.md` stub: one line saying these files are a frozen
+     audit trail, the date migrated, and that `pm/` is now the source of truth.
+   - If the vault is at the repo root (see below), add `docs/legacy/` to the
+     Obsidian `userIgnoreFilters` so the archived trackers don't clutter the view.
+   If the user prefers the tracker visible at root for history, skip this — it is
+   a convenience, not a requirement.
+
+**Vault at `pm/` (default) vs. the repo root.** This skill defaults to a vault
+scoped to `pm/` — bounded, so Obsidian never treats stray repo `.md` as PM notes
+and no exclude filters are needed. Some users instead want the **whole repo** as
+the vault (to browse all project notes in Obsidian). That works, but it is a
+manual reconfiguration, not a `tw` mode: move `.obsidian/` from `pm/` up to the
+repo root, and in `.obsidian/app.json` set `userIgnoreFilters` to hide noise
+(`node_modules/`, `dist/`, `build/`, `out/`, `coverage/`, `.git/`,
+`.claude/worktrees/`) and `showUnsupportedFiles: false`. `tw.sh` is unaffected —
+it only touches `pm/tasks` and `pm/*.base`, wherever the vault config lives. Gitignore
+the root `.obsidian/workspace*` / `cache` local state but commit `app.json` /
+`core-plugins.json`.
 
 ### Opt-out flag (so the migration prompt never nags)
 
