@@ -31,16 +31,17 @@ worktree, in non-git directories, and after the first warning each session.
 
 ## Install
 
-Clone, then add to a marketplace and enable:
+The repo is its own marketplace. In Claude Code:
 
-```bash
-git clone https://github.com/AdeAnima/coding-toolkit.git
-# in Claude Code:
-/plugin marketplace add /path/to/coding-toolkit
-/plugin install coding-toolkit
+```
+/plugin marketplace add AdeAnima/coding-toolkit
+/plugin install coding-toolkit@coding-toolkit
 ```
 
-Or load for a single session during development:
+Update later with `/plugin marketplace update coding-toolkit` then reinstall.
+
+For local development on the plugin itself, load the working copy for one
+session without installing:
 
 ```bash
 claude --plugin-dir /path/to/coding-toolkit

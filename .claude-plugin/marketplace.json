@@ -1,0 +1,16 @@
+{
+  "name": "coding-toolkit",
+  "description": "Personal coding guardrails for Claude Code.",
+  "owner": {
+    "name": "Martin Westphal",
+    "url": "https://github.com/AdeAnima"
+  },
+  "plugins": [
+    {
+      "name": "coding-toolkit",
+      "source": "./",
+      "description": "Coding principles skill (DRY/YAGNI/KISS/SINE, accuracy, milestone review, Codex delegation) plus a warn-only PreToolUse worktree-gate hook.",
+      "category": "development"
+    }
+  ]
+}
