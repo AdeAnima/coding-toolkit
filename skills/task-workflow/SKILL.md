@@ -145,17 +145,33 @@ stays as the audit trail).
    source path and the `tw.sh` path):
 
    > Read `<source tracker path>`. Classify each work item as a task, epic, or
-   > milestone. Output a list of shell commands of the form
-   > `<tw.sh path> new task "Title" [--epic <slug>] [--milestone <slug>] [--priority N]`
-   > (and `new epic` / `new milestone` for those), inferring epic/milestone
-   > grouping and priority from the source structure. Output ONLY the command
-   > list as your final message — do NOT run any command and do NOT edit the
-   > source file. Preserve the source ordering.
+   > milestone. Output a list of shell commands. **Order matters: emit every
+   > `new epic` / `new milestone` line BEFORE any task that references it.**
+   >
+   > - Epics: `<tw.sh path> new epic "Title" --slug epic-<short-slug>`
+   > - Milestones: `<tw.sh path> new milestone "Title" --slug m-<short-slug>`
+   > - Tasks: `<tw.sh path> new task "Title" [--epic epic-<short-slug>] [--milestone m-<short-slug>] [--priority N]`
+   >
+   > The `--slug` you give an epic/milestone is its full id; reference that exact
+   > string in each task's `--epic`/`--milestone`. Choose short, stable slugs
+   > (`epic-rpc-shape`, not the whole title) and use them consistently — this is
+   > what keeps task links from dangling. Infer grouping and priority from the
+   > source structure. Output ONLY the command list as your final message — do
+   > NOT run any command and do NOT edit the source file. Preserve source ordering
+   > within each kind.
 
    It returns the command list as its final message.
 4. **Main thread applies the result** per the chosen control level: show the
    command list (propose-confirm/interactive) or just run it (auto). Run each
-   `tw new …` from the repo root. Then `tw check` to confirm the vault parses.
+   command from the repo root, **epics/milestones first** so task `--epic`
+   references resolve. Then `tw check` to confirm the vault parses with no
+   dangling links.
+5. **Offer to open the vault in Obsidian.** Once `tw check` is clean, ask the
+   user whether to open the new `pm/` vault in Obsidian now (it's a plain-files
+   vault; first open also needs the Bases core plugin enabled by hand). **On
+   yes**, open it: `open -a Obsidian "<repo>/pm"` on macOS (or tell the user the
+   path to open as a vault on other platforms). **On no**, leave it — the files
+   are already on disk.
 
 ### Opt-out flag (so the migration prompt never nags)
 
