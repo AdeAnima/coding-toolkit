@@ -141,11 +141,18 @@ stays as the audit trail).
    fall back to the bare-init offer.
 2. **On confirm: scaffold first.** Run `tw init` to create the empty vault.
 3. **Dispatch a migration sub-agent.** Use the **Agent** tool with
-   `subagent_type: general-purpose`. The sub-agent must: read the source tracker
-   file, classify each entry as a task / epic / milestone, and **output a list of
-   `tw new …` commands** (with `--epic` / `--milestone` / `--priority` flags
-   inferred from the source) — it must **not** run them and must **not** edit the
-   source file. It returns the command list as its final message.
+   `subagent_type: general-purpose`. Dispatch it with this prompt (fill in the
+   source path and the `tw.sh` path):
+
+   > Read `<source tracker path>`. Classify each work item as a task, epic, or
+   > milestone. Output a list of shell commands of the form
+   > `<tw.sh path> new task "Title" [--epic <slug>] [--milestone <slug>] [--priority N]`
+   > (and `new epic` / `new milestone` for those), inferring epic/milestone
+   > grouping and priority from the source structure. Output ONLY the command
+   > list as your final message — do NOT run any command and do NOT edit the
+   > source file. Preserve the source ordering.
+
+   It returns the command list as its final message.
 4. **Main thread applies the result** per the chosen control level: show the
    command list (propose-confirm/interactive) or just run it (auto). Run each
    `tw new …` from the repo root. Then `tw check` to confirm the vault parses.
@@ -155,8 +162,9 @@ stays as the audit trail).
 Stored in `.claude/coding-toolkit.local.md` at the **target repo** root (shared
 across this plugin's skills, so use a scoped key). It is a local preference, not
 shared state: when you write it, also ensure the repo ignores it — add
-`.claude/*.local.md` to the repo's `.gitignore` if not already present. It
-silences the **prompt**, not the **detection**.
+`.claude/*.local.md` to the repo's `.gitignore` if not already present (create
+`.gitignore` with that line if the repo has none). It silences the **prompt**,
+not the **detection**.
 
 - **Read:** before pitching migration, check the file for
   `task_workflow.migrate_declined: true` in its YAML frontmatter (Read the file,
