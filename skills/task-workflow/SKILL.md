@@ -1,16 +1,20 @@
 ---
 name: task-workflow
 description: >-
-  Project task management for a repo: epics, milestones, and feature-sized PM
-  tasks tracked as one markdown note per task in a local Obsidian vault, queried
-  via Obsidian Bases. Use this whenever you are planning project work, picking
-  what to build next, tracking feature/epic/milestone status, grooming a
-  backlog, or recording that a feature is done — i.e. the layer ABOVE a single
-  implementation. It hands off each PM task into the superpowers
-  brainstorm → spec → plan → execute loop and records the resulting spec/plan
-  file links. Consult it when the user says "what should I work on", "add a
-  feature/epic/milestone", "track this", "what's the status", "groom the
-  backlog", or starts a new piece of project work.
+  Project task management for any coding repo: epics, milestones, and
+  feature-sized tasks tracked as one markdown note per task in a local Obsidian
+  vault, queried via Obsidian Bases. This is the durable layer ABOVE a single
+  implementation — it owns what work exists and where it stands, then hands each
+  task into the superpowers brainstorm → spec → plan → execute loop and records
+  the spec/plan links. Use it whenever the user is planning or picking up the
+  next piece of project work. Trigger phrases: "what is the
+  next implementation task", "what should I work on / build / implement next",
+  "next task", "what's next", "add a feature/epic/milestone", "groom the
+  backlog", or starting any new feature-sized work. Also
+  applies when a repo has an existing tracker (project.md, ROADMAP.md,
+  TODO.md, KNOWN_ISSUES.md, BACKLOG.md, TASKS.md) but no pm/ vault — detect and
+  offer migration. NOT for a one-off typo or single-file bugfix, a two-minute
+  tweak, or ticking an in-flight plan checkbox — those stay in the plan.
 ---
 
 # Task Workflow
