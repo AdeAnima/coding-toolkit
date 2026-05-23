@@ -92,31 +92,31 @@ Examples below abbreviate it as `tw`; run it with that full path (or alias it).
 It operates on the `pm/` vault under the **current repo**, so run it from inside
 the target repo.
 
-### Preflight: ensure the vault exists (do this first, every time)
+### Preflight: let the script gate you (do this first, every time)
 
-Before the first PM action in a repo, check whether the vault is set up — do not
-leave it to the user to remember. Run this branch in order:
+**Do not hand-detect vault state.** Do not run `test -d pm/...` yourself and do
+not scan the repo for tracker files yourself. The `tw.sh` script is the gate: it
+detects the vault, detects a foreign tracker, and prints the directive that tells
+you what to do. If you reimplement that detection in your own Bash, you skip the
+gate and freelance a backlog — the exact failure this preflight exists to stop.
 
-1. **`pm/` vault present?** Check `test -d pm/tasks` in the repo root. Every `tw`
-   subcommand except `init` also self-reports: it exits non-zero with
-   `tw: run 'tw.sh init' first` when the vault is missing. If present → proceed
-   with the requested action, no prompt.
-2. **`pm/` absent → scan for an existing foreign tracker** before offering a bare
-   init. Look in the repo root for: `project.md`, `PROJECT.md`, `ROADMAP.md`,
-   `TODO.md`, `KNOWN_ISSUES.md`, `BACKLOG.md`, `TASKS.md` (case-insensitive). A
-   repo with one of these already tracks work informally; the right move is to
-   *migrate* it, not start an empty vault beside it.
-   - **Foreign tracker found:** first read the opt-out flag (see below). If the
-     user has already declined migration for this repo, stay silent — proceed
-     with the plain init offer (step 3) and do **not** re-pitch migration unless
-     the user explicitly asks how to migrate. If no opt-out flag is set, go to
-     **Migrating an existing tracker** below.
-   - **No foreign tracker:** go to step 3.
-3. **Offer a bare init.** Tell the user there's no task-workflow vault in this
+1. **Run the requested subcommand through the script and read its exit code.**
+   For "what's next / what should I build" that is `tw.sh next`; for a capture
+   it is the `tw.sh new …` the user asked for. Run it and branch on the result:
+   - **Exit 0** → vault exists and the command did its job. Use the output. Done.
+   - **Non-zero with a STOP/HALT migration directive on stderr** (repo has a
+     foreign tracker but no vault) → **obey that directive exactly**: ask the
+     user the single migrate-vs-just-this-once question and wait. Do not read the
+     tracker, do not rank tasks, do not run anything else until they answer. On
+     "migrate" → go to **Migrating an existing tracker**. First, though, check
+     the opt-out flag (below): if set, skip the migrate pitch and go to step 2.
+   - **Non-zero with `tw: run 'tw.sh init' first`** (no vault, no foreign
+     tracker) → go to step 2.
+2. **Offer a bare init.** Tell the user there's no task-workflow vault in this
    repo yet and ask whether to create one, naming what `tw init` will do
    (creates `pm/{tasks,epics,milestones,archive}` + `board.base` + `backlog.base`).
-   Wait for a yes — do not scaffold files unasked. **On yes:** run `tw init`
-   yourself, then proceed with the requested action. **On no:** stop; don't run
+   Wait for a yes — do not scaffold files unasked. **On yes:** run `tw.sh init`
+   yourself, then re-run the original subcommand. **On no:** stop; don't run
    PM commands that would fail.
 
 `tw init` is idempotent (`mkdir -p`, `cp -n`) — safe to run if unsure whether a

@@ -1,5 +1,5 @@
 ---
-description: Run the task-workflow PM helper (init/new/next/status/link/check) on the current repo's pm/ vault.
+description: Explicit `/tw <init|new|next|status|link|check>` invocation of the task-workflow PM helper. Only for a literally typed /tw command — NOT for natural-language questions about what to build or work on next; those route to the task-workflow skill.
 argument-hint: "[init | new <kind> \"title\" … | next | status <id> <status> | link <id> spec|plan <path> | check]"
 ---
 
@@ -14,10 +14,12 @@ operates on the `pm/` vault in the current git repo. Execute it via Bash:
 
 If `$ARGUMENTS` is empty, show the usage by running the script with no args.
 
-Preflight: unless the command is `init`, first check `pm/` exists. If it doesn't,
-don't just let the command fail — tell the user there's no vault in this repo and
-ask whether to run `tw init` first, then proceed on a yes. See the `task-workflow`
-skill's preflight section.
+Preflight: do NOT hand-check `pm/` or scan for trackers yourself — run the
+script and let its exit code gate you. On a non-zero exit the script prints
+either a migration HALT directive (repo has a foreign tracker, no vault) or
+`tw: run 'tw.sh init' first` (no vault, no tracker). Obey whichever it prints,
+exactly as the `task-workflow` skill's preflight section describes. Never
+improvise a backlog by reading a tracker yourself.
 
 After a `status`/`link`/`new`, run `tw.sh check` if a bulk change was made so
 malformed frontmatter doesn't silently break the Bases views. For the full
