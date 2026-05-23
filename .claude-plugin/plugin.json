@@ -1,7 +1,7 @@
 {
   "name": "coding-toolkit",
-  "description": "Personal coding guardrails: fundamental dev principles (DRY/YAGNI/KISS/SINE), accuracy discipline, milestone review and delegation guidance; a task-workflow skill for repo project management (epics/milestones/tasks in an Obsidian vault) that hands off into superpowers; and a warn-only PreToolUse hook that nudges edits into an isolated git worktree.",
-  "version": "0.3.8",
+  "description": "Personal coding guardrails: fundamental dev principles (DRY/YAGNI/KISS/SINE), accuracy discipline, milestone review and delegation guidance; a task-workflow skill for repo project management (epics/milestones/tasks in an Obsidian vault) that hands off into superpowers; a warn-only PreToolUse hook that nudges edits into an isolated git worktree; and a blocking PreToolUse hook that routes pre-migration tracker reads into the task-workflow skill.",
+  "version": "0.3.9",
   "author": {
     "name": "Martin Westphal",
     "email": "martin@westphal.pw"
