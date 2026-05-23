@@ -6,15 +6,14 @@ description: >-
   vault, queried via Obsidian Bases. This is the durable layer ABOVE a single
   implementation — it owns what work exists and where it stands, then hands each
   task into the superpowers brainstorm → spec → plan → execute loop and records
-  the spec/plan links. Use it whenever the user is planning or picking up the
-  next piece of project work. Trigger phrases: "what is the
-  next implementation task", "what should I work on / build / implement next",
-  "next task", "what's next", "add a feature/epic/milestone", "groom the
-  backlog", or starting any new feature-sized work. Also
-  applies when a repo has an existing tracker (project.md, ROADMAP.md,
-  TODO.md, KNOWN_ISSUES.md, BACKLOG.md, TASKS.md) but no pm/ vault — detect and
-  offer migration. NOT for a one-off typo or single-file bugfix, a two-minute
-  tweak, or ticking an in-flight plan checkbox — those stay in the plan.
+  the spec/plan links. Use it whenever the user is choosing, prioritising, or
+  picking up project work — deciding what to build, grooming or triaging the
+  backlog, adding a feature/epic/milestone, or starting any new feature-sized
+  piece of work. Also applies when a repo already tracks work in an informal
+  tracker (project.md, ROADMAP.md, TODO.md, KNOWN_ISSUES.md, BACKLOG.md,
+  TASKS.md) but has no pm/ vault — detect it and offer migration. NOT for a
+  one-off typo or single-file bugfix, a two-minute tweak, or ticking an
+  in-flight plan checkbox — those stay in the plan.
 ---
 
 # Task Workflow
