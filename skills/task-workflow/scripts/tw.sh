@@ -143,15 +143,26 @@ cmd_init() {
   printf 'Add to .gitignore: pm/.obsidian/workspace*  pm/.obsidian/cache\n'
 }
 
+# Derive a vault-safe slug from a title: lowercase, every run of non-alphanumeric
+# chars becomes a single dash, leading/trailing dashes trimmed. Fallback only —
+# callers that need a specific id (e.g. migration, where task notes reference an
+# epic by a chosen short slug) should pass --slug to pin it instead of relying on
+# this derivation, which cannot reproduce an abbreviation of the title.
+slugify() {
+  printf '%s' "$1" | tr '[:upper:]' '[:lower:]' \
+    | sed -e 's/[^a-z0-9]\{1,\}/-/g' -e 's/^-//' -e 's/-$//'
+}
+
 # parse --flag value pairs after the positional title
 parse_flags() {
-  EPIC=""; MILESTONE=""; PRIORITY="2"; DUE=""
+  EPIC=""; MILESTONE=""; PRIORITY="2"; DUE=""; SLUG=""
   while [ $# -gt 0 ]; do
     case "$1" in
       --epic) EPIC="$2"; shift 2 ;;
       --milestone) MILESTONE="$2"; shift 2 ;;
       --priority) PRIORITY="$2"; shift 2 ;;
       --due) DUE="$2"; shift 2 ;;
+      --slug) SLUG="$2"; shift 2 ;;
       *) die "unknown flag: $1" ;;
     esac
   done
@@ -163,6 +174,7 @@ cmd_new() {
   require_vault; local v; v="$(vault)"
   case "$kind" in
     task)
+      [ -n "$SLUG" ] && die "new task: --slug not allowed (task ids are auto-assigned T-NNN)"
       local id; id="$(next_task_id)"
       local f="$v/tasks/$id.md"
       sed -e "s|^id:.*|id: $id|" \
@@ -176,27 +188,46 @@ cmd_new() {
       scrub_fm_comments "$f"
       printf '%s  %s\n' "$id" "$f" ;;
     epic)
-      local slug; slug="$(printf '%s' "$title" | tr 'A-Z ' 'a-z-' )"
-      local f="$v/epics/epic-$slug.md"
-      sed -e "s|^id:.*|id: epic-$slug|" \
+      # --slug pins the full id verbatim (what task --epic references); the guard
+      # rejects a slug missing the epic- prefix so typos fail loud. Otherwise
+      # derive the full id from the title.
+      local slug
+      if [ -n "$SLUG" ]; then
+        case "$SLUG" in
+          epic-*) slug="$SLUG" ;;
+          *) die "new epic: --slug must start with 'epic-' (got '$SLUG')" ;;
+        esac
+      else
+        slug="epic-$(slugify "$title")"
+      fi
+      local f="$v/epics/$slug.md"
+      sed -e "s|^id:.*|id: $slug|" \
           -e "s|^title:.*|title: $title|" \
           -e "s|^milestone:.*|milestone: \"[[${MILESTONE:-}]]\"|" \
           -e "s|^created:.*|created: $(today)|" \
           -e "s|^# <epic title>|# $title|" \
           "$(dir_template)/epic.md" >"$f"
       scrub_fm_comments "$f"
-      printf 'epic-%s  %s\n' "$slug" "$f" ;;
+      printf '%s  %s\n' "$slug" "$f" ;;
     milestone)
-      local slug; slug="$(printf '%s' "$title" | tr 'A-Z ' 'a-z-' )"
-      local f="$v/milestones/m-$slug.md"
-      sed -e "s|^id:.*|id: m-$slug|" \
+      local slug
+      if [ -n "$SLUG" ]; then
+        case "$SLUG" in
+          m-*) slug="$SLUG" ;;
+          *) die "new milestone: --slug must start with 'm-' (got '$SLUG')" ;;
+        esac
+      else
+        slug="m-$(slugify "$title")"
+      fi
+      local f="$v/milestones/$slug.md"
+      sed -e "s|^id:.*|id: $slug|" \
           -e "s|^title:.*|title: $title|" \
           -e "s|^due:.*|due: ${DUE:-}|" \
           -e "s|^created:.*|created: $(today)|" \
           -e "s|^# <milestone title>|# $title|" \
           "$(dir_template)/milestone.md" >"$f"
       scrub_fm_comments "$f"
-      printf 'm-%s  %s\n' "$slug" "$f" ;;
+      printf '%s  %s\n' "$slug" "$f" ;;
     *) die "new: kind must be task|epic|milestone" ;;
   esac
 }
