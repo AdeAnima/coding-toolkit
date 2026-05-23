@@ -1,0 +1,23 @@
+# Status board over pm/tasks/. Grouped by status = a poor-man's kanban
+# (Bases has no native kanban view). Done tasks are excluded; archive them.
+filters:
+  and:
+    - 'file.inFolder("tasks")'
+    - 'note.status != "done"'
+    - 'note.status != "cancelled"'
+
+views:
+  - type: table
+    name: Board
+    groupBy:
+      property: note.status
+      direction: ASC
+    order:
+      - note.id
+      - file.name
+      - note.status
+      - note.priority
+      - note.epic
+      - note.milestone
+    summaries:
+      note.id: Count

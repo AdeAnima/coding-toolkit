@@ -1,0 +1,18 @@
+# Backlog only. Bases has no row-sort key in YAML — click the priority column
+# header in Obsidian to sort, or use `tw.sh next` for the scripted pick (priority
+# then oldest). Columns are ordered priority-first to make the manual sort obvious.
+filters:
+  and:
+    - 'file.inFolder("tasks")'
+    - 'note.status == "backlog"'
+
+views:
+  - type: table
+    name: Backlog
+    order:
+      - note.priority
+      - note.created
+      - note.id
+      - file.name
+      - note.epic
+      - note.milestone
