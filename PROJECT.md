@@ -52,6 +52,11 @@ reinstall.
   load the skill twice (personal + plugin).
 - [ ] **commands/**: add slash commands if a repeatable coding workflow emerges
   (e.g. `/scaffold-worktree`).
+- [ ] **`/tw` no-prompt path**: drop the per-run Bash permission prompt without
+  reopening the injection vector. Requires invoking `tw.sh` with arguments as
+  safe argv tokens (not `$ARGUMENTS` text interpolation), then a scoped
+  `allowed-tools: Bash(…/tw.sh *)`. Depends on how slash-command argument
+  handling actually resolves — verify before relying on it.
 - [ ] **Hook config tunability**: per-repo opt-out (e.g. a `.coding-toolkit-off`
   marker) for solo repos where the worktree nudge is noise.
 - [ ] **Marketplace listing**: if sharing publicly, add to a marketplace manifest.
@@ -62,9 +67,48 @@ reinstall.
 - [ ] **kepano/obsidian-skills adoption**: not yet installed locally. Document as
   a soft dependency (Bases authoring reference); decide whether to bundle a
   pointer or rely on the user installing it separately.
-- [ ] **tw.sh on PATH**: skill calls `scripts/tw.sh` relative to the plugin root;
-  consider a `${CLAUDE_PLUGIN_ROOT}` shim or a `/tw` slash command so agents
-  don't hard-code the worktree-relative path.
+- [x] **tw.sh path resolution**: both SKILL.md and the `/tw` command reference the
+  helper via `${CLAUDE_PLUGIN_ROOT}/skills/task-workflow/scripts/tw.sh`. Chose the
+  proven `${CLAUDE_PLUGIN_ROOT}` form over `${CLAUDE_SKILL_DIR}` since it's unverified
+  whether the latter substitutes in skill-body prose (docs only show it in `` !` `` blocks).
+
+### Phase 3 — best-practices audit (docs.claude.com/en/best-practices + skills/hooks/plugins refs)
+
+Audited against the official docs. Already compliant: root-level `skills/ hooks/
+commands/` with only `plugin.json`+`marketplace.json` in `.claude-plugin/`;
+SKILL.md bodies < 500 lines; descriptions well under the 1,536-char cap; hook
+uses `jq`, quotes inputs, fails open, exits 0 (warn-only by design). Fixes
+applied:
+
+- **Preflight in `task-workflow`**: skill (and `/tw`) now check `pm/` exists
+  before any PM action and *offer* `tw init` rather than leaving setup to the
+  user. Hooks can't prompt interactively (no `/dev/tty`), so this is skill-level
+  by design, not a new hook — confirmed against the hooks doc.
+- **`tw next`/`tw check` self-report a missing vault** (were silently printing
+  "backlog empty"), so the preflight signal is reliable.
+- **`/tw` keeps the per-run Bash permission prompt** (no `allowed-tools` grant).
+  An adversarial Codex review flagged that adding `allowed-tools: Bash` while the
+  command body still shell-interpolates raw `$ARGUMENTS` removes the prompt that
+  was the only net against `/tw foo; rm -rf ~` style injection. Scoping the
+  allowlist to `tw.sh` doesn't help: the model renders `$ARGUMENTS` into the shell
+  string *before* the allowlist matches, so a chained `; cmd` rides along. Reverted
+  the grant; the prompt stays as the safety net. (Ergonomic no-prompt path logged
+  to backlog — needs safe argv passing, not text interpolation.)
+- **Script path uses `${CLAUDE_PLUGIN_ROOT}/skills/task-workflow/scripts/tw.sh`**
+  in both SKILL.md and `/tw` — proven form; `${CLAUDE_SKILL_DIR}` substitution in
+  skill-body prose is unverified, so avoided.
+- **Version bumped 0.1.0 → 0.2.0**; plugin + marketplace descriptions updated to
+  mention task-workflow.
+
+Deliberately NOT done (researched, judged N/A — YAGNI):
+
+- **`tw.sh` into `bin/` on PATH** — not part of the documented plugin layout;
+  `${CLAUDE_SKILL_DIR}`/`${CLAUDE_PLUGIN_ROOT}` references are the documented way
+  and already work.
+- **`disable-model-invocation` on `/tw`** — the command is read-mostly and safe
+  for the model to invoke; reserving it would only hurt.
+- App-dev practices (plan mode, multi-session, non-interactive `-p`, `/clear`
+  hygiene, `/run` `/verify`) — about *using* Claude Code, not authoring a plugin.
 
 ## Local dev / test
 

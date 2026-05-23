@@ -82,10 +82,31 @@ backlog → speccing → planning → in-progress → review → done
 
 ## How to use it
 
-The helper lives at `${CLAUDE_PLUGIN_ROOT}/skills/task-workflow/scripts/tw.sh`.
+The helper lives at `${CLAUDE_PLUGIN_ROOT}/skills/task-workflow/scripts/tw.sh`
+(same path the `/tw` command uses; resolves wherever the plugin is installed).
 Examples below abbreviate it as `tw`; run it with that full path (or alias it).
 It operates on the `pm/` vault under the **current repo**, so run it from inside
-the target repo. First time in a repo: `tw init`.
+the target repo.
+
+### Preflight: ensure the vault exists (do this first, every time)
+
+Before the first PM action in a repo, check whether the vault is set up — do not
+leave it to the user to remember:
+
+1. Check for `pm/` in the repo root (e.g. `test -d pm`). Every `tw` subcommand
+   except `init` also self-reports: it exits non-zero with
+   `tw: run 'tw.sh init' first` when the vault is missing.
+2. **If `pm/` is absent:** tell the user there's no task-workflow vault in this
+   repo yet and ask whether to create one, naming what `tw init` will do
+   (creates `pm/{tasks,epics,milestones,archive}` + `board.base` + `backlog.base`).
+   Wait for a yes — do not scaffold files unasked.
+3. **On yes:** run `tw init` yourself, then proceed with the requested action.
+   **On no:** stop; don't run PM commands that would fail.
+
+`tw init` is idempotent (`mkdir -p`, `cp -n`) — safe to run if unsure whether a
+partial vault exists. It does **not** launch Obsidian or require it to be
+running; the vault is plain files. Opening it in Obsidian (and enabling the
+Bases core plugin on first open) is a manual, human-side step.
 
 ### Pick what to build next
 Run `tw next` — prints the highest-priority `backlog` task (ties broken by oldest

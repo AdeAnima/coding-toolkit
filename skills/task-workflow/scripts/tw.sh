@@ -151,6 +151,7 @@ task_file() {
 }
 
 cmd_next() {
+  [ -d "$(vault)" ] || die "run 'tw.sh init' first"
   local best="" bestp=99 bestc="9999-99-99" id pr cr st f
   for f in "$(vault)"/tasks/T-*.md; do
     [ -e "$f" ] || continue

@@ -13,6 +13,12 @@ operates on the `pm/` vault in the current git repo. Execute it via Bash:
 ```
 
 If `$ARGUMENTS` is empty, show the usage by running the script with no args.
+
+Preflight: unless the command is `init`, first check `pm/` exists. If it doesn't,
+don't just let the command fail — tell the user there's no vault in this repo and
+ask whether to run `tw init` first, then proceed on a yes. See the `task-workflow`
+skill's preflight section.
+
 After a `status`/`link`/`new`, run `tw.sh check` if a bulk change was made so
 malformed frontmatter doesn't silently break the Bases views. For the full
 workflow and the PM-task-vs-plan-step distinction, consult the `task-workflow`
