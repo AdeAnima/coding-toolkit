@@ -1,0 +1,11 @@
+{
+  "name": "coding-toolkit",
+  "description": "Personal coding guardrails: fundamental dev principles (DRY/YAGNI/KISS/SINE), accuracy discipline, milestone review and delegation guidance, plus a warn-only PreToolUse hook that nudges edits into an isolated git worktree.",
+  "version": "0.1.0",
+  "author": {
+    "name": "Martin Westphal",
+    "email": "martin@westphal.pw"
+  },
+  "homepage": "https://github.com/AdeAnima/coding-toolkit",
+  "license": "MIT"
+}
