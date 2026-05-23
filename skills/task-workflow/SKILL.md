@@ -142,8 +142,11 @@ stays as the audit trail).
    fall back to the bare-init offer.
 2. **On confirm: scaffold first.** Run `tw init` to create the empty vault.
 3. **Dispatch a migration sub-agent.** Use the **Agent** tool with
-   `subagent_type: general-purpose`. Dispatch it with this prompt (fill in the
-   source path and the `tw.sh` path):
+   `subagent_type: general-purpose` and `model: opus` — migration is a one-shot
+   that defines the vault's whole epic/milestone structure, so classification
+   errors propagate into every downstream link. Use the strongest model; do not
+   let it inherit a weaker one. Dispatch it with this prompt (fill in the source
+   path and the `tw.sh` path):
 
    > Read `<source tracker path>`. Classify each work item as a task, epic, or
    > milestone. Output a list of shell commands. **Order matters: emit every
