@@ -125,9 +125,11 @@ next_task_id() {
   for f in "$(vault)"/tasks/T-*.md; do
     [ -e "$f" ] || continue
     id="$(basename "$f" .md)"; n="${id#T-}"
-    [ "$n" -gt "$max" ] 2>/dev/null && max="$n"
+    # 10# forces base-10: zero-padded ids like 008/009 are otherwise read as
+    # octal and crash arithmetic ("value too great for base").
+    [ "$((10#$n))" -gt "$((10#$max))" ] 2>/dev/null && max="$n"
   done
-  printf 'T-%03d' "$((max + 1))"
+  printf 'T-%03d' "$((10#$max + 1))"
 }
 
 cmd_init() {
