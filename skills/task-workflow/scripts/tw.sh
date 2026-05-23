@@ -27,6 +27,13 @@ today() { date +%Y-%m-%d; }
 repo_root() { git rev-parse --show-toplevel 2>/dev/null || die "not in a git repo"; }
 vault() { printf '%s/pm' "$(repo_root)"; }
 
+# Single missing-vault gate. Every non-init subcommand calls this so a missing
+# vault always self-reports with the exact message the skill's preflight promises,
+# never as "no such task" or "backlog empty". Probes pm/tasks (not bare pm/) so an
+# unrelated or half-initialised pm/ dir doesn't pass as a real vault; init is
+# idempotent, so the fix for a partial vault is always "run init".
+require_vault() { [ -d "$(vault)/tasks" ] || die "run 'tw.sh init' first"; }
+
 # Read a single frontmatter scalar: fm_get <file> <key>
 # Strips an inline " # comment", surrounding whitespace, and quotes.
 fm_get() {
@@ -102,7 +109,7 @@ parse_flags() {
 cmd_new() {
   local kind="$1" title="$2"; shift 2
   parse_flags "$@"
-  local v; v="$(vault)"; [ -d "$v" ] || die "run 'tw.sh init' first"
+  require_vault; local v; v="$(vault)"
   case "$kind" in
     task)
       local id; id="$(next_task_id)"
@@ -144,6 +151,7 @@ cmd_new() {
 }
 
 task_file() {
+  require_vault
   local id="$1" f="$(vault)/tasks/$id.md"
   [ -e "$f" ] || f="$(vault)/archive/$id.md"
   [ -e "$f" ] || die "no such task: $id"
@@ -151,7 +159,7 @@ task_file() {
 }
 
 cmd_next() {
-  [ -d "$(vault)" ] || die "run 'tw.sh init' first"
+  require_vault
   local best="" bestp=99 bestc="9999-99-99" id pr cr st f
   for f in "$(vault)"/tasks/T-*.md; do
     [ -e "$f" ] || continue
@@ -185,7 +193,7 @@ cmd_link() {
 
 cmd_check() {
   local v fail=0 f st id known
-  v="$(vault)"; [ -d "$v" ] || die "no vault; run init"
+  require_vault; v="$(vault)"
   for f in "$v"/tasks/*.md "$v"/archive/*.md; do
     [ -e "$f" ] || continue
     id="$(fm_get "$f" id)"; st="$(fm_get "$f" status)"
