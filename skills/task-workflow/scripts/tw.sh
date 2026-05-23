@@ -27,12 +27,48 @@ today() { date +%Y-%m-%d; }
 repo_root() { git rev-parse --show-toplevel 2>/dev/null || die "not in a git repo"; }
 vault() { printf '%s/pm' "$(repo_root)"; }
 
+# Foreign trackers we recognise as "this repo already tracks work informally".
+# A repo with one of these but no pm/ vault should be MIGRATED, not handed an
+# empty vault — so the gate names the file and routes the agent to the skill.
+FOREIGN_TRACKERS="project.md PROJECT.md ROADMAP.md TODO.md KNOWN_ISSUES.md BACKLOG.md TASKS.md"
+
+# First foreign tracker present in the repo root, or empty string.
+found_tracker() {
+  local root t; root="$(repo_root)"
+  for t in $FOREIGN_TRACKERS; do
+    [ -e "$root/$t" ] && { printf '%s' "$t"; return 0; }
+  done
+  return 1
+}
+
 # Single missing-vault gate. Every non-init subcommand calls this so a missing
-# vault always self-reports with the exact message the skill's preflight promises,
-# never as "no such task" or "backlog empty". Probes pm/tasks (not bare pm/) so an
-# unrelated or half-initialised pm/ dir doesn't pass as a real vault; init is
-# idempotent, so the fix for a partial vault is always "run init".
-require_vault() { [ -d "$(vault)/tasks" ] || die "run 'tw.sh init' first"; }
+# vault always self-reports — never as "no such task" or "backlog empty". Probes
+# pm/tasks (not bare pm/) so an unrelated or half-initialised pm/ dir doesn't
+# pass as a real vault; init is idempotent, so the fix for a partial vault is
+# always "run init".
+#
+# When the vault is missing AND a foreign tracker exists, the gate does NOT just
+# say "run init" — it prints the migration directive INTO the tool output, at the
+# decision point, and routes the agent to the task-workflow skill. This is
+# deliberate: agents reliably obey a directive in fresh tool output but skip
+# doctrine that merely lives behind a "see the skill" pointer. The script stays
+# dumb (no migration logic, no control-level prompt) — it only gates and points.
+require_vault() {
+  [ -d "$(vault)/tasks" ] && return 0
+  local tracker
+  if tracker="$(found_tracker)"; then
+    cat >&2 <<EOF
+tw: no pm/ vault, but this repo already tracks work in '$tracker'.
+    Do NOT improvise a backlog by reading trackers yourself. Load the
+    'task-workflow' skill and follow its "Migrating an existing tracker" branch:
+    ask the user's control level, run 'tw.sh init', then dispatch the migration
+    sub-agent. If the user has declined migration (see the opt-out flag in the
+    skill), run 'tw.sh init' to start an empty vault instead.
+EOF
+    exit 1
+  fi
+  die "run 'tw.sh init' first"
+}
 
 # Read a single frontmatter scalar: fm_get <file> <key>
 # Strips an inline " # comment", surrounding whitespace, and quotes.
