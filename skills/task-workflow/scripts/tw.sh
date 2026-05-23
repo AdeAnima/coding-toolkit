@@ -58,12 +58,25 @@ require_vault() {
   local tracker
   if tracker="$(found_tracker)"; then
     cat >&2 <<EOF
-tw: no pm/ vault, but this repo already tracks work in '$tracker'.
-    Do NOT improvise a backlog by reading trackers yourself. Load the
-    'task-workflow' skill and follow its "Migrating an existing tracker" branch:
-    ask the user's control level, run 'tw.sh init', then dispatch the migration
-    sub-agent. If the user has declined migration (see the opt-out flag in the
-    skill), run 'tw.sh init' to start an empty vault instead.
+tw: STOP. No pm/ vault, but this repo already tracks work in '$tracker'.
+
+    The user's question is now PAUSED. Do not answer it yet. Do not read
+    '$tracker' or any other tracker to assemble a backlog yourself — that is the
+    exact freelancing this gate exists to stop.
+
+    Your one allowed next action: ask the user this single question and wait.
+
+      "This repo tracks work in '$tracker' but has no task-workflow vault.
+       Migrate it into a pm/ vault now, or answer just this once from the
+       tracker without setting one up?"
+
+    - Migrate  -> load the 'task-workflow' skill, follow its "Migrating an
+                  existing tracker" branch (ask control level, 'tw.sh init',
+                  dispatch the migration sub-agent), THEN answer.
+    - Just this once -> only then may you read the tracker to answer, and tell
+                  the user how to migrate later.
+
+    Until the user picks, take no other action.
 EOF
     exit 1
   fi
