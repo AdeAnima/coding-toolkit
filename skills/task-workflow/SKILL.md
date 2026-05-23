@@ -95,22 +95,85 @@ the target repo.
 ### Preflight: ensure the vault exists (do this first, every time)
 
 Before the first PM action in a repo, check whether the vault is set up — do not
-leave it to the user to remember:
+leave it to the user to remember. Run this branch in order:
 
-1. Check for `pm/` in the repo root (e.g. `test -d pm`). Every `tw` subcommand
-   except `init` also self-reports: it exits non-zero with
-   `tw: run 'tw.sh init' first` when the vault is missing.
-2. **If `pm/` is absent:** tell the user there's no task-workflow vault in this
+1. **`pm/` vault present?** Check `test -d pm/tasks` in the repo root. Every `tw`
+   subcommand except `init` also self-reports: it exits non-zero with
+   `tw: run 'tw.sh init' first` when the vault is missing. If present → proceed
+   with the requested action, no prompt.
+2. **`pm/` absent → scan for an existing foreign tracker** before offering a bare
+   init. Look in the repo root for: `project.md`, `PROJECT.md`, `ROADMAP.md`,
+   `TODO.md`, `KNOWN_ISSUES.md`, `BACKLOG.md`, `TASKS.md` (case-insensitive). A
+   repo with one of these already tracks work informally; the right move is to
+   *migrate* it, not start an empty vault beside it.
+   - **Foreign tracker found:** first read the opt-out flag (see below). If the
+     user has already declined migration for this repo, stay silent — proceed
+     with the plain init offer (step 3) and do **not** re-pitch migration unless
+     the user explicitly asks how to migrate. If no opt-out flag is set, go to
+     **Migrating an existing tracker** below.
+   - **No foreign tracker:** go to step 3.
+3. **Offer a bare init.** Tell the user there's no task-workflow vault in this
    repo yet and ask whether to create one, naming what `tw init` will do
    (creates `pm/{tasks,epics,milestones,archive}` + `board.base` + `backlog.base`).
-   Wait for a yes — do not scaffold files unasked.
-3. **On yes:** run `tw init` yourself, then proceed with the requested action.
-   **On no:** stop; don't run PM commands that would fail.
+   Wait for a yes — do not scaffold files unasked. **On yes:** run `tw init`
+   yourself, then proceed with the requested action. **On no:** stop; don't run
+   PM commands that would fail.
 
 `tw init` is idempotent (`mkdir -p`, `cp -n`) — safe to run if unsure whether a
 partial vault exists. It does **not** launch Obsidian or require it to be
 running; the vault is plain files. Opening it in Obsidian (and enabling the
 Bases core plugin on first open) is a manual, human-side step.
+
+### Migrating an existing tracker
+
+When step 2 finds a foreign tracker and no opt-out flag, offer to migrate it into
+the PM vault. Migration is **propose → approve → run**: nothing touches the vault
+until the user signs off, and the source tracker file is **never modified** (it
+stays as the audit trail).
+
+1. **Tell the user what you found** (which tracker file) and offer to migrate it
+   into a `pm/` vault. **Ask how much control they want** — adapt to the answer:
+   - *Auto:* run the whole migration, then show a summary.
+   - *Propose-confirm (default):* show the proposed `tw new …` command list, run
+     it only after the user approves.
+   - *Interactive:* walk item by item, confirming each before adding it.
+   If the user declines migration entirely, write the opt-out flag (below) and
+   fall back to the bare-init offer.
+2. **On confirm: scaffold first.** Run `tw init` to create the empty vault.
+3. **Dispatch a migration sub-agent.** Use the **Agent** tool with
+   `subagent_type: general-purpose`. The sub-agent must: read the source tracker
+   file, classify each entry as a task / epic / milestone, and **output a list of
+   `tw new …` commands** (with `--epic` / `--milestone` / `--priority` flags
+   inferred from the source) — it must **not** run them and must **not** edit the
+   source file. It returns the command list as its final message.
+4. **Main thread applies the result** per the chosen control level: show the
+   command list (propose-confirm/interactive) or just run it (auto). Run each
+   `tw new …` from the repo root. Then `tw check` to confirm the vault parses.
+
+### Opt-out flag (so the migration prompt never nags)
+
+Stored in `.claude/coding-toolkit.local.md` at the **target repo** root (shared
+across this plugin's skills, so use a scoped key). It is a local preference, not
+shared state: when you write it, also ensure the repo ignores it — add
+`.claude/*.local.md` to the repo's `.gitignore` if not already present. It
+silences the **prompt**, not the **detection**.
+
+- **Read:** before pitching migration, check the file for
+  `task_workflow.migrate_declined: true` in its YAML frontmatter (Read the file,
+  or `grep`). If set → do not pitch migration; proceed with the bare-init offer.
+- **Write on decline:** if the user says they don't want to migrate, create or
+  update `.claude/coding-toolkit.local.md` with:
+
+  ```yaml
+  ---
+  task_workflow.migrate_declined: true
+  ---
+  ```
+
+  Preserve any existing frontmatter keys other skills wrote — merge, don't clobber.
+- **If the user later asks how to migrate** (explicitly), tell them: delete that
+  key (or run migration directly via the steps above). Do **not** volunteer this
+  reminder unprompted on every PM call — the whole point of the flag is silence.
 
 ### Pick what to build next
 Run `tw next` — prints the highest-priority `backlog` task (ties broken by oldest
