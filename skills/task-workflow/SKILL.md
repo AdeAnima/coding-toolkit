@@ -55,14 +55,24 @@ A local Obsidian vault lives at `pm/` in the repo root:
 
 ```
 pm/
-  .obsidian/            # vault config (gitignored except community plugin list)
-  tasks/                # one note per PM task: T-NNN.md
+  .obsidian/            # vault config + the vendored kanban plugin
+    plugins/kanban-bases-view/   # bundled by tw init (MIT) — real kanban board
+    community-plugins.json       # enables the kanban plugin: ["kanban-bases-view"]
+  tasks/                # one note per PM task: T-NNN-<slug>.md
   epics/                # one note per epic: epic-<slug>.md
   milestones/           # one note per milestone: m-<slug>.md
   archive/              # done tasks moved here after they settle
-  board.base            # group-by-status view of tasks/
+  board.base            # Kanban + table over tasks/, grouped by status
   backlog.base          # status=backlog, priority column first (sort in UI)
+  by-epic.base          # Kanban + table, columns = epic
+  by-milestone.base     # Kanban + table, columns = milestone
 ```
+
+Task filenames are `T-NNN-<slug>.md` (e.g. `T-007-csv-export.md`) so a folder
+listing is self-describing, but **`T-NNN` is still the only lookup key** — every
+`tw` command takes the bare id (`tw status T-007 done`), and the slug is cosmetic.
+If a vault ever has two files for one id (a stale slug left beside a renamed one),
+`tw` errors and you run `tw rename-files` to repair filenames from frontmatter.
 
 `archive/` exists from day one: move a task note here once it has been `done`
 for a while. Bases editing performance degrades past several hundred notes, so
@@ -115,7 +125,9 @@ gate and freelance a backlog — the exact failure this preflight exists to stop
      tracker) → go to step 2.
 2. **Offer a bare init.** Tell the user there's no task-workflow vault in this
    repo yet and ask whether to create one, naming what `tw init` will do
-   (creates `pm/{tasks,epics,milestones,archive}` + `board.base` + `backlog.base`).
+   (creates `pm/{tasks,epics,milestones,archive}`, the `.base` views, and bundles
+   the vendored kanban-bases-view plugin so the board is a real drag-and-drop
+   Kanban — not just a grouped table).
    Wait for a yes — do not scaffold files unasked. **On yes:** run `tw.sh init`
    yourself, then re-run the original subcommand. **On no:** stop; don't run
    PM commands that would fail.
@@ -195,10 +207,14 @@ stays as the audit trail).
      as vault* → select the vault path. After that one-time step it stays
      registered.
 
-   Bases ships **enabled by default** in current Obsidian, so `board.base` /
-   `backlog.base` render on first open with no action. If an older Obsidian shows
-   them as plain files, the user enables it once: Settings → Core plugins → Bases.
-   First open may also prompt *Trust author* — that is expected; confirm it.
+   Bases ships **enabled by default** in current Obsidian, so the table views in
+   `board.base` / `backlog.base` render on first open with no action. **The Kanban
+   views need the bundled `kanban-bases-view` community plugin**, and Obsidian
+   opens any vault with community plugins in **restricted mode**: it shows *"Do you
+   trust the authors of this vault?"* on first open. **Tell the user explicitly to
+   click Trust** (then, if prompted, *Enable* community plugins) — until they do,
+   the Kanban columns fall back to the table view and the board looks plugin-less.
+   There is no filesystem way to pre-trust the vault; the click is required once.
 
 6. **Offer to archive the migrated source tracker (optional).** The source file
    was never modified during migration and stays as the audit trail — but it is

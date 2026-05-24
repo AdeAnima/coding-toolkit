@@ -9,7 +9,7 @@
     {
       "name": "coding-toolkit",
       "source": "./",
-      "description": "Coding principles skill (DRY/YAGNI/KISS/SINE, accuracy, milestone review, Codex delegation), a task-workflow PM skill (Obsidian-vault epics/milestones/tasks handing off into superpowers), and a warn-only PreToolUse worktree-gate hook.",
+      "description": "Coding principles skill (DRY/YAGNI/KISS/SINE, accuracy, milestone review, Codex delegation), a task-workflow PM skill (Obsidian-vault epics/milestones/tasks with a vendored Kanban board, handing off into superpowers), a warn-only PreToolUse worktree-gate hook, and a blocking PreToolUse hook that routes pre-migration tracker reads into the task-workflow skill.",
       "category": "development"
     }
   ]

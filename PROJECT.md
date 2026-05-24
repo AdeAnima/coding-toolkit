@@ -60,6 +60,14 @@ reinstall.
 - [ ] **Hook config tunability**: per-repo opt-out (e.g. a `.coding-toolkit-off`
   marker) for solo repos where the worktree nudge is noise.
 - [ ] **Marketplace listing**: if sharing publicly, add to a marketplace manifest.
+- [ ] **Own Bases display (post-0.4.0)**: 0.4.0 vendors the `kanban-bases-view`
+  community plugin (MIT, v0.10.0) to give the vault a real kanban/Linear-style
+  board, since native Bases has no kanban view. User's intent: *"this is just
+  the start we should build our own solution to display the bases later."* So the
+  third-party plugin is a stepping stone, not the destination — eventually replace
+  it with a first-party renderer (own Bases view registered by a coding-toolkit
+  Obsidian plugin, or an external viewer) so we don't depend on a frozen vendored
+  fork. No work now; recorded so the dependency is understood as temporary.
 - [ ] **Bases >500 notes degrades** (anecdotal, unbenchmarked). Solo repo is
   fine, but `tw.sh` should grow an `archive` command that moves `done` notes
   older than N days from `tasks/` to `archive/` so live views stay fast. The
@@ -109,6 +117,44 @@ Deliberately NOT done (researched, judged N/A — YAGNI):
   for the model to invoke; reserving it would only hurt.
 - App-dev practices (plan mode, multi-session, non-interactive `-p`, `/clear`
   hygiene, `/run` `/verify`) — about *using* Claude Code, not authoring a plugin.
+
+### Phase 4 — full PM board (0.4.0)
+
+Three migration-quality gaps surfaced dogfooding the agent-triggers migration:
+task filenames were id-only (`T-001.md` — can't tell tasks apart in a file list),
+epics looked "empty" (epic note body is template boilerplate; tasks roll up only
+via Bases, invisible when reading the note), and there was no kanban-style board.
+
+- **Descriptive task filenames.** Task notes now write to `tasks/T-NNN-<slug>.md`
+  (slug from title) so a folder listing is self-describing. The id contract is
+  preserved: `T-NNN` is still the lookup key and is parsed back out of the
+  filename (`next_task_id` takes digits before the first dash). `task_file()`
+  globs `tasks/T-NNN-*.md` / `tasks/T-NNN.md`; >1 match errors loudly and tells
+  the user to run `tw rename-files`. Added `tw rename-files` — idempotent: reads
+  each note's `id`+`title`, computes the target name, no-ops if already correct,
+  refuses to clobber a different-content file, removes an exact-duplicate.
+- **Epics show their tasks.** The epic template now embeds an inline ```base
+  block filtered on `note.epic == "[[<this-epic>]]"`, so opening an epic renders
+  its task list instead of looking empty. (The frontmatter rollup was always
+  there; this surfaces it in the note body.)
+- **Real kanban board.** Vendored the `kanban-bases-view` community plugin (MIT,
+  v0.10.0, github.com/xiwcx/obsidian-bases-kanban) into
+  `templates/vendor/kanban-bases-view/` (main.js, manifest.json, styles.css, +
+  LICENSE per MIT). `tw init` copies it into `pm/.obsidian/plugins/…` and writes
+  `pm/.obsidian/community-plugins.json = ["kanban-bases-view"]`. New scaffold
+  views: `board.base` gains a kanban view (`type: kanban-view`,
+  `groupByProperty: note.status`) alongside the existing table; `by-epic.base`
+  and `by-milestone.base` group by epic/milestone. View YAML source-verified
+  against src/main.ts (`KANBAN_VIEW_TYPE='kanban-view'`, config key
+  `groupByProperty`, not `groupBy`).
+- **First open trusts the vault.** Obsidian opens a vault with community plugins
+  in restricted mode and shows "Do you trust the authors of this vault?" — there
+  is no documented filesystem bypass. SKILL.md Step 5 tells the user to click
+  Trust so the kanban view loads.
+- **Vendored files freeze at v0.10.0.** To upgrade: re-download release assets
+  from github.com/xiwcx/obsidian-bases-kanban/releases into the vendor dir. See
+  the future-improvements note on replacing the dependency with a first-party
+  renderer.
 
 ## Local dev / test
 

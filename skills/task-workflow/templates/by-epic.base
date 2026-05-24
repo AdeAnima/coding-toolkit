@@ -1,0 +1,31 @@
+# Tasks grouped by epic. Kanban view (one column per epic) via the vendored
+# kanban-bases-view plugin, plus a grouped-table fallback. Done/cancelled hidden.
+filters:
+  and:
+    - 'file.inFolder("tasks")'
+    - 'note.status != "done"'
+    - 'note.status != "cancelled"'
+
+views:
+  - type: kanban-view
+    name: By epic
+    groupByProperty: note.epic
+    cardTitleProperty: note.title
+    order:
+      - note.id
+      - note.status
+      - note.priority
+      - note.milestone
+  - type: table
+    name: By epic (table)
+    groupBy:
+      property: note.epic
+      direction: ASC
+    order:
+      - note.id
+      - file.name
+      - note.status
+      - note.priority
+      - note.milestone
+    summaries:
+      note.id: Count

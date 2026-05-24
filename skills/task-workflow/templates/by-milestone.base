@@ -1,0 +1,32 @@
+# Tasks grouped by milestone. Kanban view (one column per milestone) via the
+# vendored kanban-bases-view plugin, plus a grouped-table fallback.
+# Done/cancelled hidden.
+filters:
+  and:
+    - 'file.inFolder("tasks")'
+    - 'note.status != "done"'
+    - 'note.status != "cancelled"'
+
+views:
+  - type: kanban-view
+    name: By milestone
+    groupByProperty: note.milestone
+    cardTitleProperty: note.title
+    order:
+      - note.id
+      - note.status
+      - note.priority
+      - note.epic
+  - type: table
+    name: By milestone (table)
+    groupBy:
+      property: note.milestone
+      direction: ASC
+    order:
+      - note.id
+      - file.name
+      - note.status
+      - note.priority
+      - note.epic
+    summaries:
+      note.id: Count

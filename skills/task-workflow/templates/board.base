@@ -1,5 +1,6 @@
-# Status board over pm/tasks/. Grouped by status = a poor-man's kanban
-# (Bases has no native kanban view). Done tasks are excluded; archive them.
+# Status board over pm/tasks/. Two views: a drag-and-drop Kanban (columns =
+# status, via the vendored kanban-bases-view plugin) and a grouped table as a
+# no-plugin fallback. Done/cancelled excluded; archive them.
 filters:
   and:
     - 'file.inFolder("tasks")'
@@ -7,6 +8,20 @@ filters:
     - 'note.status != "cancelled"'
 
 views:
+  # Real kanban. Needs the kanban-bases-view community plugin (tw init vendors +
+  # enables it). View type and config keys source-verified against the plugin:
+  # KANBAN_VIEW_TYPE = 'kanban-view'; columns from groupByProperty; card heading
+  # from cardTitleProperty. NOT `groupBy:` — that key is table-only.
+  - type: kanban-view
+    name: Kanban
+    groupByProperty: note.status
+    cardTitleProperty: note.title
+    order:
+      - note.id
+      - note.priority
+      - note.epic
+      - note.milestone
+  # Fallback table (works with zero plugins).
   - type: table
     name: Board
     groupBy:

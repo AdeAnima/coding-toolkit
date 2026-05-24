@@ -14,5 +14,22 @@ created: YYYY-MM-DD
 ## Scope
 <what's in / out>
 
-Tasks belong to this epic via their own `epic:` frontmatter — do not list them
-here; let Bases roll them up. Open `board.base` filtered on this epic.
+## Tasks
+
+Tasks belong to this epic via their own `epic:` frontmatter — do not maintain a
+list by hand. The embedded view rolls them up automatically.
+
+```base
+filters:
+  and:
+    - 'file.inFolder("tasks")'
+    - 'note.epic == "[[epic-<slug>]]"'
+views:
+  - type: table
+    name: Tasks in this epic
+    order:
+      - note.id
+      - note.status
+      - note.priority
+      - file.name
+```
